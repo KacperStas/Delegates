@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Media;
 
 namespace DelegateTester
 {
     public partial class MainWindow : Window
     {
-        // The delegate variable that will hold the reference to the selected method
+        // Point 1 & 2: The delegate variable for single operations
         private Func<double, double> _selectedOperation;
+
+        // Point 4: The delegate variable for UI styling (multicast)
+        // Action is a built-in delegate type that takes no parameters and returns void.
+        private Action _multicastStyleDelegate;
 
         public MainWindow()
         {
@@ -28,7 +33,6 @@ namespace DelegateTester
 
         private double Reciprocal(double number)
         {
-            // Handling division by zero
             if (number == 0)
             {
                 MessageBox.Show("Cannot calculate the reciprocal of zero.", "Math Error", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -80,17 +84,12 @@ namespace DelegateTester
 
         // --- Point 3: Collection Processing ---
 
-        /// <summary>
-        /// This method accepts a collection of numbers and a delegate.
-        /// It iterates through the collection, applying the delegate to each item.
-        /// </summary>
         private List<double> ProcessCollection(List<double> numbers, Func<double, double> operation)
         {
             List<double> processedNumbers = new List<double>();
 
             foreach (double number in numbers)
             {
-                // Invoke the delegate passed into the method parameter
                 processedNumbers.Add(operation(number));
             }
 
@@ -99,14 +98,12 @@ namespace DelegateTester
 
         private void ProcessListButton_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Verify a method is selected
             if (_selectedOperation == null)
             {
                 MessageBox.Show("Please select an operation first.", "Missing Selection", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            // 2. Parse the comma-separated input into a List<double>
             string[] inputStrings = InputListTextBox.Text.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
             List<double> inputNumbers = new List<double>();
 
@@ -129,12 +126,49 @@ namespace DelegateTester
                 return;
             }
 
-            // 3. Call the processing method, passing the collection AND the delegate
             List<double> results = ProcessCollection(inputNumbers, _selectedOperation);
 
-            // 4. Format and display the results
             List<string> formattedResults = results.ConvertAll(r => r.ToString("F3"));
             ListResultTextBlock.Text = $"Processed List: {string.Join(", ", formattedResults)}";
+        }
+
+        // --- Point 4: Multicast Delegates (UI Styling) ---
+
+        private void ChangeBackgroundColor()
+        {
+            this.Background = Brushes.LightSteelBlue;
+        }
+
+        private void ChangeFontColor()
+        {
+            MulticastTargetLabel.Foreground = Brushes.DarkRed;
+        }
+
+        private void ChangeFontSize()
+        {
+            MulticastTargetLabel.FontSize = 24;
+        }
+
+        private void ApplyStylesButton_Click(object sender, RoutedEventArgs e)
+        {
+            // 1. Clear out any previous assignments to prevent duplicates if clicked multiple times
+            _multicastStyleDelegate = null;
+
+            // 2. Add multiple methods to the delegate (Chaining / Multicasting)
+            _multicastStyleDelegate += ChangeBackgroundColor;
+            _multicastStyleDelegate += ChangeFontColor;
+            _multicastStyleDelegate += ChangeFontSize;
+
+            // 3. Invoke all methods simultaneously
+            _multicastStyleDelegate?.Invoke();
+        }
+
+        private void ResetStylesButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Bonus requirement: Reset window appearance
+            this.Background = SystemColors.WindowBrush;
+            MulticastTargetLabel.Foreground = SystemColors.ControlTextBrush;
+            MulticastTargetLabel.FontSize = 14;
         }
     }
 }
