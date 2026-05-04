@@ -1,12 +1,16 @@
 ﻿<Window x:Class="DelegateTester.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Delegate Tester - Point 1" Height="250" Width="450" MinHeight="200" MinWidth="400">
+        Title="Delegate Tester - Points 1 &amp; 2" Height="320" Width="450" MinHeight="250" MinWidth="400">
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <!-- Added for Execute Button -->
+            <RowDefinition Height="Auto"/>
+            <!-- Added for Result -->
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -19,7 +23,7 @@
         <Label Content="Enter a Real Number:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" FontWeight="SemiBold"/>
         <TextBox x:Name="InputTextBox" Grid.Row="0" Grid.Column="1" Margin="10,0,0,0" Padding="5" VerticalAlignment="Center" />
 
-        <!-- Operation Selection -->
+        <!-- Operation Selection (Point 1) -->
         <GroupBox Header="Select an Operation" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,20,0,0" Padding="10">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <RadioButton x:Name="SquareRadio" Content="Square" Margin="0,0,20,0" Checked="Operation_Checked"/>
@@ -27,6 +31,14 @@
                 <RadioButton x:Name="ReciprocalRadio" Content="Reciprocal" Checked="Operation_Checked"/>
             </StackPanel>
         </GroupBox>
+
+        <!-- Execution Button (Point 2) -->
+        <Button x:Name="ExecuteButton" Content="Execute Stored Method" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" 
+                Margin="0,20,0,0" Padding="10,5" Width="200" Click="ExecuteButton_Click"/>
+
+        <!-- Result Display (Point 2) -->
+        <TextBlock x:Name="ResultTextBlock" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" 
+                   Margin="0,20,0,0" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" Foreground="DarkBlue" />
 
     </Grid>
 </Window>
