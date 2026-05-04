@@ -11,7 +11,6 @@ namespace DelegateTester
         private Func<double, double> _selectedOperation;
 
         // Point 4: The delegate variable for UI styling (multicast)
-        // Action is a built-in delegate type that takes no parameters and returns void.
         private Action _multicastStyleDelegate;
 
         public MainWindow()
@@ -19,18 +18,10 @@ namespace DelegateTester
             InitializeComponent();
         }
 
-        // --- Method Definitions ---
+        // --- Method Definitions (Points 1 & 2) ---
 
-        private double Square(double number)
-        {
-            return number * number;
-        }
-
-        private double SquareRoot(double number)
-        {
-            return Math.Sqrt(number);
-        }
-
+        private double Square(double number) => number * number;
+        private double SquareRoot(double number) => Math.Sqrt(number);
         private double Reciprocal(double number)
         {
             if (number == 0)
@@ -47,18 +38,9 @@ namespace DelegateTester
         {
             if (!IsLoaded) return;
 
-            if (SquareRadio.IsChecked == true)
-            {
-                _selectedOperation = Square;
-            }
-            else if (SquareRootRadio.IsChecked == true)
-            {
-                _selectedOperation = SquareRoot;
-            }
-            else if (ReciprocalRadio.IsChecked == true)
-            {
-                _selectedOperation = Reciprocal;
-            }
+            if (SquareRadio.IsChecked == true) _selectedOperation = Square;
+            else if (SquareRootRadio.IsChecked == true) _selectedOperation = SquareRoot;
+            else if (ReciprocalRadio.IsChecked == true) _selectedOperation = Reciprocal;
         }
 
         // --- Point 2: Execution of Stored Method ---
@@ -87,12 +69,10 @@ namespace DelegateTester
         private List<double> ProcessCollection(List<double> numbers, Func<double, double> operation)
         {
             List<double> processedNumbers = new List<double>();
-
             foreach (double number in numbers)
             {
                 processedNumbers.Add(operation(number));
             }
-
             return processedNumbers;
         }
 
@@ -115,60 +95,133 @@ namespace DelegateTester
                 }
                 else
                 {
-                    MessageBox.Show($"Invalid number detected: '{str.Trim()}'. Please enter only numbers separated by commas.", "Input Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Invalid number detected: '{str.Trim()}'.", "Input Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
             }
 
-            if (inputNumbers.Count == 0)
-            {
-                MessageBox.Show("Please enter a valid list of numbers.", "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            if (inputNumbers.Count == 0) return;
 
             List<double> results = ProcessCollection(inputNumbers, _selectedOperation);
-
             List<string> formattedResults = results.ConvertAll(r => r.ToString("F3"));
             ListResultTextBlock.Text = $"Processed List: {string.Join(", ", formattedResults)}";
         }
 
         // --- Point 4: Multicast Delegates (UI Styling) ---
 
-        private void ChangeBackgroundColor()
-        {
-            this.Background = Brushes.LightSteelBlue;
-        }
-
-        private void ChangeFontColor()
-        {
-            MulticastTargetLabel.Foreground = Brushes.DarkRed;
-        }
-
-        private void ChangeFontSize()
-        {
-            MulticastTargetLabel.FontSize = 24;
-        }
+        private void ChangeBackgroundColor() => this.Background = Brushes.LightSteelBlue;
+        private void ChangeFontColor() => MulticastTargetLabel.Foreground = Brushes.DarkRed;
+        private void ChangeFontSize() => MulticastTargetLabel.FontSize = 24;
 
         private void ApplyStylesButton_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Clear out any previous assignments to prevent duplicates if clicked multiple times
             _multicastStyleDelegate = null;
-
-            // 2. Add multiple methods to the delegate (Chaining / Multicasting)
             _multicastStyleDelegate += ChangeBackgroundColor;
             _multicastStyleDelegate += ChangeFontColor;
             _multicastStyleDelegate += ChangeFontSize;
-
-            // 3. Invoke all methods simultaneously
             _multicastStyleDelegate?.Invoke();
         }
 
         private void ResetStylesButton_Click(object sender, RoutedEventArgs e)
         {
-            // Bonus requirement: Reset window appearance
             this.Background = SystemColors.WindowBrush;
             MulticastTargetLabel.Foreground = SystemColors.ControlTextBrush;
             MulticastTargetLabel.FontSize = 14;
+        }
+
+        // --- Point 5: Custom Sorting (Numbers) ---
+
+        // Comparison methods matching Func<double, double, bool>
+        // These return 'true' if the elements are out of order and need to be swapped
+        private bool ShouldSwapForAscending(double a, double b)
+        {
+            return a > b;
+        }
+
+        private bool ShouldSwapForDescending(double a, double b)
+        {
+            return a < b;
+        }
+
+        /// <summary>
+        /// Custom Bubble Sort algorithm. 
+        /// Relies entirely on the comparisonDelegate to know how to sort.
+        /// </summary>
+        private List<double> CustomBubbleSort(List<double> list, Func<double, double, bool> comparisonDelegate)
+        {
+            // Clone the list so we don't modify the original collection directly
+            List<double> sortedList = new List<double>(list);
+            int n = sortedList.Count;
+            bool swapped;
+
+            for (int i = 0; i < n - 1; i++)
+            {
+                swapped = false;
+                for (int j = 0; j < n - i - 1; j++)
+                {
+                    // INVOKE DELEGATE: Ask the delegate if these two specific elements should be swapped
+                    if (comparisonDelegate(sortedList[j], sortedList[j + 1]))
+                    {
+                        // Standard array swap
+                        double temp = sortedList[j];
+                        sortedList[j] = sortedList[j + 1];
+                        sortedList[j + 1] = temp;
+
+                        swapped = true;
+                    }
+                }
+
+                // If no elements were swapped in the inner loop, the array is sorted
+                if (!swapped)
+                    break;
+            }
+
+            return sortedList;
+        }
+
+        private void SortButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Parse the input
+            string[] inputStrings = SortInputTextBox.Text.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            List<double> inputNumbers = new List<double>();
+
+            foreach (string str in inputStrings)
+            {
+                if (double.TryParse(str.Trim(), out double num))
+                {
+                    inputNumbers.Add(num);
+                }
+                else
+                {
+                    MessageBox.Show($"Invalid number detected: '{str.Trim()}'.", "Input Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+            }
+
+            if (inputNumbers.Count == 0)
+            {
+                MessageBox.Show("Please enter numbers to sort.", "Input Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Determine which delegate to pass into our custom sort function
+            Func<double, double, bool> selectedComparisonMethod;
+
+            if (AscendingRadio.IsChecked == true)
+            {
+                selectedComparisonMethod = ShouldSwapForAscending;
+            }
+            else
+            {
+                selectedComparisonMethod = ShouldSwapForDescending;
+            }
+
+            // Execute custom sorting algorithm
+            List<double> sortedResults = CustomBubbleSort(inputNumbers, selectedComparisonMethod);
+
+            // Display results
+            List<string> formattedResults = sortedResults.ConvertAll(r => r.ToString("G")); // 'G' removes trailing zeros
+            SortResultTextBlock.Text = $"Sorted List: {string.Join(", ", formattedResults)}";
         }
     }
 }
